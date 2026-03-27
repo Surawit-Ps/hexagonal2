@@ -57,7 +57,7 @@ func (r dogsRepositoryDB)GetDogs()([]entity.Dogs,error){
 
 func (r dogsRepositoryDB)GetADogs(id string)(*entity.Dogs,error){
 	var dog DogsModel
-	result := r.db.Find(&dog,"id = ?",id)
+	result := r.db.Find(&dog,"id = ? OR human_id = ?",id,id)
 	if result.Error != nil{
 		return nil,result.Error
 	}

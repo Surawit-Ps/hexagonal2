@@ -18,26 +18,26 @@ func NewHumanHandler(humanSer ports.HumanServices) humanHandler {
 func (h humanHandler) GetAllUsers(c *fiber.Ctx) error {
 	humans, err := h.humanSer.GetAllUser()
 	if err != nil {
-		return c.JSON(fiber.ErrInternalServerError)
+		return c.Status(fiber.StatusInternalServerError).JSON(newResponse(false, "Internal Server Error", nil))
 	}
-	return c.JSON(humans)
+	return c.JSON(newResponse(true, "Success", humans))
 }
 
 func (h humanHandler) GetAUser(c *fiber.Ctx) error {
 	human, err := h.humanSer.GetUser(c.Params("id"))
 	if err != nil {
-		return c.JSON(fiber.ErrNotFound)
+		return c.Status(fiber.StatusNotFound).JSON(newResponse(false, "User not found", nil))
 	}
-	return c.JSON(human)
+	return c.JSON(newResponse(true, "Success", human))
 }
 
 func (h humanHandler) AddUser(c *fiber.Ctx) error {
 	var person entity.Humans
 	if err := c.BodyParser(&person); err != nil {
-		return c.JSON(fiber.ErrInternalServerError)
+		return c.Status(fiber.StatusBadRequest).JSON(newResponse(false, "Invalid request body", nil))
 	}
 	if err := h.humanSer.AddUser(person); err != nil {
-		return c.JSON(fiber.ErrInternalServerError)
+		return c.Status(fiber.StatusInternalServerError).JSON(newResponse(false, "Internal Server Error", nil))
 	}
-	return c.JSON(c.Status(200))
+	return c.JSON(newResponse(true, "Success", nil))
 }

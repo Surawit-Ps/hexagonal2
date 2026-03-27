@@ -18,9 +18,9 @@ func NewDogHandler(dogSer ports.DogServices)dogHandler{
 func(h dogHandler)GetAllDogs(c *fiber.Ctx)error{
 	dog ,err:= h.dogSer.GetAllDogs()
 	if  err != nil{
-		return c.JSON(fiber.ErrInternalServerError)
+		return c.Status(fiber.StatusInternalServerError).JSON(newResponse(false, "Internal Server Error", nil))
 	}
-	return c.JSON(dog)
+	return c.JSON(newResponse(true, "Success", dog))
 }
 
 func(h dogHandler)GetADogs(c *fiber.Ctx)error{
@@ -28,14 +28,21 @@ func(h dogHandler)GetADogs(c *fiber.Ctx)error{
 	if err!=nil{
 		return c.JSON(fiber.ErrNotFound)
 	}
-	return c.JSON(dog)
+	return c.Status(fiber.StatusOK).JSON(newResponse(true, "Success", dog))
 }
 
 func(h dogHandler)AddDog(c *fiber.Ctx)error{
-	var dog []entity.Dogs
+	var dog entity.Dogs
 	err := c.BodyParser(&dog)
 	if err != nil{
-		return c.JSON(fiber.ErrInternalServerError)
+		return c.Status(fiber.StatusBadRequest).JSON(newResponse(false, "Invalid request body", nil))
 	}
-	return c.JSON(c.Status(200))
+	id := dog.HumanID
+	if id == "" {
+		return c.Status(fiber.StatusBadRequest).JSON(newResponse(false, "Human ID is required", nil))
+	}
+	if err := h.dogSer.AddDog(dog, id); err != nil{
+		return c.Status(fiber.StatusInternalServerError).JSON(newResponse(false, "Internal Server Error", nil))
+	}
+	return c.Status(fiber.StatusCreated).JSON(newResponse(true, "Success", nil))
 }
