@@ -1,6 +1,6 @@
 package repository
 
-import ("hgo/core/entity"
+import ("hexagonal2/core/entity"
 "gorm.io/gorm"
 "github.com/google/uuid")
 
@@ -13,7 +13,7 @@ type DogsModel struct{
 	Name string
 	Age uint
 	Colour string
-	HumanID string
+	UserID string
 }
 
 func NewDogsRepositoryDB(db *gorm.DB) *dogsRepositoryDB{
@@ -26,7 +26,7 @@ func EnToGorm(d entity.Dogs)DogsModel{
 		Name: d.Name,
 		Age: d.Age,
 		Colour: d.Colour,
-		HumanID: d.HumanID,
+		UserID: d.UserID,
 	}
 } 
 
@@ -36,7 +36,7 @@ func GormToEn(d DogsModel)entity.Dogs{
 		Name: d.Name,
 		Age: d.Age,
 		Colour: d.Colour,
-		HumanID: d.HumanID,
+		UserID: d.UserID,
 	}
 }
 
@@ -65,9 +65,9 @@ func (r dogsRepositoryDB)GetADogs(id string)(*entity.Dogs,error){
 	return &edog,nil
 }
 
-func(r dogsRepositoryDB)AddDog(d entity.Dogs,humanID string)error{
+func(r dogsRepositoryDB)AddDog(d entity.Dogs,userID string)error{
 	d.Id = uuid.New().String()
-	d.HumanID = humanID
+	d.UserID = userID
 	dog := EnToGorm(d)
 	result := r.db.Create(&dog)
 	if result.Error != nil{

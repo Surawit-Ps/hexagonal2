@@ -9,7 +9,7 @@ import (
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
 
-	"hgo/core/entity"
+	"hexagonal2/core/entity"
 )
 
 type dogsRepositoryMongo struct {
@@ -21,7 +21,7 @@ type DogMongo struct {
 	Name    string `bson:"name" json:"name"`
 	Age     uint   `bson:"age" json:"age"`
 	Colour  string `bson:"colour" json:"colour"`
-	HumanID string `bson:"human_id" json:"human_id"`
+	UserID string `bson:"user_id" json:"user_id"`
 }
 
 func dogEnToMongo(d entity.Dogs) DogMongo {
@@ -30,7 +30,7 @@ func dogEnToMongo(d entity.Dogs) DogMongo {
 		Name:    d.Name,
 		Age:     d.Age,
 		Colour:  d.Colour,
-		HumanID: d.HumanID,
+		UserID: d.UserID,
 	}
 }
 
@@ -40,7 +40,7 @@ func dogMongoToEn(m DogMongo) entity.Dogs {
 		Name:    m.Name,
 		Age:     m.Age,
 		Colour:  m.Colour,
-		HumanID: m.HumanID,
+		UserID: m.UserID,
 	}
 }
 
@@ -81,14 +81,14 @@ func (r *dogsRepositoryMongo) GetADogs(id string) (*entity.Dogs, error) {
 	return &en, nil
 }
 
-func (r *dogsRepositoryMongo) AddDog(d entity.Dogs, humanID string) error {
+func (r *dogsRepositoryMongo) AddDog(d entity.Dogs, userID string) error {
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 
 	if d.Id == "" {
 		d.Id = primitive.NewObjectID().Hex()
 	}
-	d.HumanID = humanID
+	d.UserID = userID
 
 	m := dogEnToMongo(d)
 	filter := bson.M{"id": m.ID}

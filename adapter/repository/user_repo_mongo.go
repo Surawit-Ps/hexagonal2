@@ -7,51 +7,57 @@ import (
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
-	"go.mongodb.org/mongo-driver/mongo/options"
-
-	"hgo/core/entity"
+	// "go.mongodb.org/mongo-driver/mongo/options"
+	"hexagonal2/core/middleware"
+	"hexagonal2/core/entity"
 )
 
-type humanRepositoryMongo struct {
+type userRepositoryMongo struct {
 	col *mongo.Collection
 }
 
-type HumanMongo struct {
+type UserMongo struct {
 	ID       primitive.ObjectID `bson:"_id,omitempty" json:"id"`
 	Name     string `bson:"name" json:"name"`
 	LastName string `bson:"last_name" json:"last_name"`
 	Age      int    `bson:"age" json:"age"`
 	Email    string `bson:"email" json:"email"`
 	Tel      string `bson:"tel" json:"tel"`
+	Password string `bson:"password" json:"password"`
+	Role     string `bson:"role" json:"role"` // Admin, User
 }
 
-func humanEnToMongo(h entity.Humans) HumanMongo {
-	return HumanMongo{
+func userEnToMongo(u entity.User) UserMongo {
+	return UserMongo{
 		ID:       primitive.NewObjectID(),
-		Name:     h.Name,
-		LastName: h.LastName,
-		Age:      h.Age,
-		Email:    h.Email,
-		Tel:      h.Tel,
+		Name:     u.Name,
+		LastName: u.LastName,
+		Age:      u.Age,
+		Email:    u.Email,
+		Tel:      u.Tel,
+		Password: u.Password,
+		Role:     u.Role,
 	}
 }
 
-func humanMongoToEn(m HumanMongo) entity.Humans {
-	return entity.Humans{
+func userMongoToEn(m UserMongo) entity.User {
+	return entity.User{
 		Id:       m.ID.Hex(),
 		Name:     m.Name,
 		LastName: m.LastName,
 		Age:      m.Age,
 		Email:    m.Email,
 		Tel:      m.Tel,
+		Password: m.Password,
+		Role:     m.Role,
 	}
 }
 
-func NewHumanRepositoryMongo(client *mongo.Client, dbName string) *humanRepositoryMongo {
-	return &humanRepositoryMongo{col: client.Database(dbName).Collection("humans")}
+func NewUserRepositoryMongo(client *mongo.Client, dbName string) *userRepositoryMongo {
+	return &userRepositoryMongo{col: client.Database(dbName).Collection("users")}
 }
 
-func (r *humanRepositoryMongo) GetPeoples() ([]entity.Humans, error) {
+func (r *userRepositoryMongo) GetUsers() ([]entity.User, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 
@@ -61,30 +67,30 @@ func (r *humanRepositoryMongo) GetPeoples() ([]entity.Humans, error) {
 	}
 	defer cur.Close(ctx)
 
-	var out []entity.Humans
+	var out []entity.User
 	for cur.Next(ctx) {
-		var m HumanMongo
+		var m UserMongo
 		if err := cur.Decode(&m); err != nil {
 			return nil, err
 		}
-		out = append(out, humanMongoToEn(m))
+		out = append(out, userMongoToEn(m))
 	}
 	return out, nil
 }
 
-func (r *humanRepositoryMongo) GetPerson(id string) (*entity.Humans, error) {
+func (r *userRepositoryMongo) GetUser(id string) (*entity.User, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 
-	var m HumanMongo
+	var m UserMongo
 	if err := r.col.FindOne(ctx, bson.M{"id": id}).Decode(&m); err != nil {
 		return nil, err
 	}
-	en := humanMongoToEn(m)
+	en := userMongoToEn(m)
 	return &en, nil
 }
 
-func (r *humanRepositoryMongo) AddPerson(p entity.Humans) error {
+func (r *userRepositoryMongo) AddUser(p entity.User) error {
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 
@@ -92,11 +98,13 @@ func (r *humanRepositoryMongo) AddPerson(p entity.Humans) error {
 		p.Id = primitive.NewObjectID().Hex()
 	}
 
-	m := humanEnToMongo(p)
-	filter := bson.M{"id": m.ID}
-	update := bson.M{"$setOnInsert": m}
-	opts := options.Update().SetUpsert(true)
+	Password, err := middleware.HashPassword(p.Password)
+	if err != nil {
+		return err
+	}
+	p.Password = Password
 
-	_, err := r.col.UpdateOne(ctx, filter, update, opts)
+
+	_, err = r.col.InsertOne(ctx, userEnToMongo(p))
 	return err
 }

@@ -1,6 +1,6 @@
 package ports
 
-import("hgo/core/entity")
+import("hexagonal2/core/entity")
 
 type DogServices interface{
 	GetAllDogs()([]entity.DogRes,error)

@@ -5,10 +5,10 @@ import (
 	"log"
 	"time"
 
-	"hgo/adapter/handler"
-	"hgo/adapter/repository"
-	"hgo/core/ports"
-	"hgo/core/service"
+	"hexagonal2/adapter/handler"
+	"hexagonal2/adapter/repository"
+	"hexagonal2/core/ports"
+	"hexagonal2/core/service"
 
 	"github.com/gofiber/fiber/v2"
 	// "github.com/google/uuid"
@@ -21,18 +21,18 @@ import (
 func main() {
 
 
-	humanRepo, dogRepo, err := connectDatabase(true) // pass false to attempt MongoDB connection
+	userRepo, dogRepo, err := connectDatabase(true) // pass false to attempt MongoDB connection
 	if err != nil {
 		log.Fatal("failed to connect to any database:", err)
 	}
 
 	// services
-	humanSrv := service.NewHumanServive(humanRepo)
+	userSrv := service.NewUserService(userRepo)
 	dogSrv := service.NewDogService(dogRepo)
 
 	// handlers
 	dh := handler.NewDogHandler(dogSrv)
-	hh := handler.NewHumanHandler(humanSrv)
+	hh := handler.NewUserHandler(userSrv)
 
 
 	app := fiber.New()
@@ -41,9 +41,9 @@ func main() {
 	app.Get("/dogs/:id", dh.GetADogs)
 	app.Post("/dogs", dh.AddDog)
 
-	app.Get("/humans", hh.GetAllUsers)
-	app.Get("/humans/:id", hh.GetAUser)
-	app.Post("/humans", hh.AddUser)
+	app.Get("/users", hh.GetAllUsers)
+	app.Get("/users/:id", hh.GetAUser)
+	app.Post("/users", hh.AddUser)
 
 	if err := app.Listen(":3000"); err != nil {
 		log.Fatal(err)
@@ -51,22 +51,22 @@ func main() {
 }
 
 
-func connectDatabase(flag bool) (humanRepo ports.HumanRepository, dogRepo ports.DogsRepository,err error) {
+func connectDatabase(flag bool) (userRepo ports.UserRepository, dogRepo ports.DogsRepository,err error) {
 	if flag {
 		db, err := gorm.Open(sqlite.Open("hgo.db"), &gorm.Config{})
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	if err := db.AutoMigrate(&repository.HumanDB{}, &repository.DogsModel{}); err != nil {
+	if err := db.AutoMigrate(&repository.UserDB{}, &repository.DogsModel{}); err != nil {
 		log.Fatal(err)
 	}
 
 	// repositories (default to GORM sqlite implementations)
-	humanRepo = repository.NewHumanReposityDB(db)
+	userRepo = repository.NewUserRepositoryDB(db)
 	dogRepo = repository.NewDogsRepositoryDB(db)
 
-	return humanRepo, dogRepo, nil
+	return userRepo, dogRepo, nil
 
 
 	}else{
@@ -76,9 +76,9 @@ func connectDatabase(flag bool) (humanRepo ports.HumanRepository, dogRepo ports.
 		if err == nil {
 		if err = mongoClient.Ping(ctx, nil); err == nil {
 			log.Println("connected to mongodb, switching repositories")
-			humanRepo = repository.NewHumanRepositoryMongo(mongoClient, "hgo")
+			userRepo = repository.NewUserRepositoryMongo(mongoClient, "hgo")
 			dogRepo = repository.NewDogsRepositoryMongo(mongoClient, "hgo")
-			return humanRepo, dogRepo, nil
+			return userRepo, dogRepo, nil
 		} else {
 			log.Println("mongo ping failed:", err)
 		}

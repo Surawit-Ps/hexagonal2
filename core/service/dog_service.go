@@ -1,8 +1,8 @@
 package service
 
 import ("fmt"
-"hgo/core/ports"
-"hgo/core/entity")
+"hexagonal2/core/ports"
+"hexagonal2/core/entity")
 
 type dogService struct{
 	repo ports.DogsRepository
@@ -23,7 +23,7 @@ func(r dogService)GetAllDogs()([]entity.DogRes,error){
 		ds := entity.DogRes{
 			Name: d.Name,
 			Age: d.Age,
-			HumanID: d.HumanID,
+			UserID: d.UserID,
 		}
 		dosRes = append(dosRes, ds)
 	}
@@ -39,7 +39,7 @@ func(r dogService)GetDog(id string)(*entity.DogRes,error){
 	ds := entity.DogRes{
 			Name: dog.Name,
 			Age: dog.Age,
-			HumanID: dog.HumanID,
+			UserID: dog.UserID,
 		}
 	return &ds,nil
 }

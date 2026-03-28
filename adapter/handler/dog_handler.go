@@ -1,8 +1,8 @@
 package handler
 
 import (
-	"hgo/core/entity"
-	"hgo/core/ports"
+	"hexagonal2/core/entity"
+	"hexagonal2/core/ports"
 
 	"github.com/gofiber/fiber/v2"
 )
@@ -37,7 +37,7 @@ func(h dogHandler)AddDog(c *fiber.Ctx)error{
 	if err != nil{
 		return c.Status(fiber.StatusBadRequest).JSON(newResponse(false, "Invalid request body", nil))
 	}
-	id := dog.HumanID
+	id := dog.UserID
 	if id == "" {
 		return c.Status(fiber.StatusBadRequest).JSON(newResponse(false, "Human ID is required", nil))
 	}
