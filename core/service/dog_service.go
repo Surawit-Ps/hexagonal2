@@ -21,6 +21,7 @@ func(r dogService)GetAllDogs()([]entity.DogRes,error){
 	var dosRes []entity.DogRes
 	for _,d := range dog{
 		ds := entity.DogRes{
+			ID: d.Id,
 			Name: d.Name,
 			Age: d.Age,
 			UserID: d.UserID,
@@ -37,6 +38,7 @@ func(r dogService)GetDog(id string)(*entity.DogRes,error){
 		return nil,err
 	}
 	ds := entity.DogRes{
+			ID: dog.Id,
 			Name: dog.Name,
 			Age: dog.Age,
 			UserID: dog.UserID,

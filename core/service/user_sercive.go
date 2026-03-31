@@ -25,6 +25,7 @@ func (r userService) GetAllUser()([]entity.UserRes,error){
 	var usRes []entity.UserRes
 	for _,u := range user{
 		usResp := entity.UserRes{
+			ID: u.Id,
 			Name: u.Name,
 			LastName: u.LastName,
 			Email: u.Email,
@@ -42,6 +43,7 @@ func (r userService) GetUser(id string)(*entity.UserRes,error){
 		return nil,err
 	}
 	usResp := entity.UserRes{
+			ID: user.Id,
 			Name: user.Name,
 			LastName: user.LastName,
 			Email: user.Email,

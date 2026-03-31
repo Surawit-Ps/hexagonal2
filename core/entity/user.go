@@ -12,8 +12,9 @@ type User struct{
 }
 
 type UserRes struct{
-	Name string 
-	LastName string 
-	Email string 
-	Tel string 
+	ID string `json:"id"`
+	Name string `json:"name"`
+	LastName string `json:"last_name"`
+	Email string `json:"email"`
+	Tel string `json:"tel"`
 }
